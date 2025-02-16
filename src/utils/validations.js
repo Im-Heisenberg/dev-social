@@ -80,6 +80,9 @@ const authMiddleware = async (req, res, next) => {
 
 module.exports = {
 	verifyNewUserCreation,
+	isNameValid,
+	isAgeValid,
+	isSkillValid,
 	isEmailValid,
 	isPasswordValid,
 	authMiddleware,
