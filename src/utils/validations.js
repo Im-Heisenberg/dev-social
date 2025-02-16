@@ -6,6 +6,7 @@ const {
 	SKILL_REGEX,
 	NAME_REGEX,
 	JWT_TOKEN,
+	EXCLUDED_FIELDS,
 } = require("./constants");
 const { userModel } = require("../models/user");
 
@@ -62,11 +63,13 @@ function verifyNewUserCreation({
 
 const authMiddleware = async (req, res, next) => {
 	try {
-		const token = req.cookies.JWT_TOKEN;
+		const token = req.cookies[JWT_TOKEN];
 		if (!token) throw new Error("bad auth: invalid jwt token");
 		const result = jwt.verify(token, process.env.JWT_SIGNATURE);
 		if (!result) throw new Error("auth error");
-		const loggedUser = await userModel.findOne({ email: result.email });
+		const loggedUser = await userModel
+			.findOne({ email: result.email })
+			.select(EXCLUDED_FIELDS);
 		if (!loggedUser) throw new Error("bad auth: user not found");
 		req.loggedUser = loggedUser;
 		next();

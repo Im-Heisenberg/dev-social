@@ -52,7 +52,7 @@ router.post("/login", async (req, res) => {
 });
 router.post("/logout", async (req, res) => {
 	try {
-		res.cookie(process.env.JWT_TOKEN, null);
+		res.cookie(JWT_TOKEN, null);
 		res.json({ message: "user logged out successfully" });
 	} catch (err) {
 		res.status(505).json({ message: "Error in logging out" });
