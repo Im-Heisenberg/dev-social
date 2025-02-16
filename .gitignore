@@ -1,0 +1,15 @@
+# NPM packages folder.
+node_modules
+
+#env
+.env
+
+# Build files
+dist/
+
+# lock files
+yarn.lock
+package-lock.json
+
+#misc
+apiList.md
