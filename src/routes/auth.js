@@ -3,6 +3,7 @@ const {
 	verifyNewUserCreation,
 	isEmailValid,
 	isPasswordValid,
+	isPasswordCorrect,
 } = require("../utils/validations");
 
 const { userModel } = require("../models/user");
@@ -42,7 +43,12 @@ router.post("/login", async (req, res) => {
 	const { email, password } = req.body;
 	// verify email & password & user should exist in DB
 	const isUserValid = await userModel.findOne({ email });
-	if (isEmailValid(email) && isPasswordValid(password) && isUserValid) {
+	if (
+		!isUserValid ||
+		!(await isPasswordCorrect(password, isUserValid.password))
+	) {
+		res.json({ message: "wrong creds" });
+	} else {
 		// generate jwt
 		const token = isUserValid.generateJwtToken(email);
 		// add jwt to cookie

@@ -4,6 +4,8 @@ const {
 	isNameValid,
 	isAgeValid,
 	isSkillValid,
+	isPasswordCorrect,
+	isPasswordValid,
 } = require("../utils/validations");
 const { userModel } = require("../models/user");
 const { EXCLUDED_FIELDS } = require("../utils/constants");
@@ -38,6 +40,28 @@ router.patch("/edit", authMiddleware, async (req, res) => {
 		}
 	} catch (error) {
 		res.json({ message: error.message });
+	}
+});
+
+router.patch("/update-password", authMiddleware, async (req, res) => {
+	try {
+		const { _id: loggedUser } = req.loggedUser;
+		const { newPassword, oldPassword } = req.body;
+		// check if old password is correct
+		const user = await userModel.findOne({ _id: loggedUser });
+		const result = await isPasswordCorrect(oldPassword, user.password);
+		if (!result) throw new Error("Wrong password");
+		if (!isPasswordValid(newPassword))
+			throw new Error("Error in new password");
+		const hashedPassword = await user.encryptPassword(newPassword);
+		const data = await userModel.findOneAndUpdate(
+			{ _id: loggedUser },
+			{ password: hashedPassword },
+			{ new: true }
+		);
+		res.json({ data });
+	} catch (err) {
+		res.json({ message: "Password cant be updated: " + err.message });
 	}
 });
 

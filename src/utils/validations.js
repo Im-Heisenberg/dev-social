@@ -11,6 +11,7 @@ const {
 } = require("./constants");
 const { userModel } = require("../models/user");
 const { default: mongoose } = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const isNameValid = (name) => {
 	return typeof name === "string" && NAME_REGEX.test(name);
@@ -95,6 +96,11 @@ function validateConnectionParams(receiver, state) {
 	}
 }
 
+async function isPasswordCorrect(plainPassword, hash) {
+	return await bcrypt.compare(plainPassword, hash);
+	
+}
+
 module.exports = {
 	verifyNewUserCreation,
 	isNameValid,
@@ -106,4 +112,5 @@ module.exports = {
 	validateConnectionParams,
 	isMongoIdValid,
 	isStateValid,
+	isPasswordCorrect,
 };
