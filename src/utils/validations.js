@@ -7,8 +7,10 @@ const {
 	NAME_REGEX,
 	JWT_TOKEN,
 	EXCLUDED_FIELDS,
+	ALLOWED_STATUS,
 } = require("./constants");
 const { userModel } = require("../models/user");
+const { default: mongoose } = require("mongoose");
 
 const isNameValid = (name) => {
 	return typeof name === "string" && NAME_REGEX.test(name);
@@ -78,6 +80,21 @@ const authMiddleware = async (req, res, next) => {
 	}
 };
 
+function isMongoIdValid(id) {
+	const res = mongoose.Types.ObjectId.isValid(id);
+	return res ? true : false;
+}
+
+function isStateValid(state) {
+	const res = ALLOWED_STATUS.includes(state);
+	return res ? true : false;
+}
+function validateConnectionParams(receiver, state) {
+	if (!isMongoIdValid(receiver) || !isStateValid(state)) {
+		throw new Error("ID or state is invalid");
+	}
+}
+
 module.exports = {
 	verifyNewUserCreation,
 	isNameValid,
@@ -86,4 +103,7 @@ module.exports = {
 	isEmailValid,
 	isPasswordValid,
 	authMiddleware,
+	validateConnectionParams,
+	isMongoIdValid,
+	isStateValid,
 };

@@ -4,6 +4,9 @@ const SKILL_REGEX = /^[A-Za-z0-9 ]+$/; // Allows only letters, numbers, and spac
 const NAME_REGEX = /^[A-Za-z ]{2,50}$/;
 const EXCLUDED_FIELDS = "-password -__v -createdAt -updatedAt";
 const ALLOWED_UPDATE_FIELDS = ["firstname", "lastname", "age", "skills"];
+const ALLOWED_STATUS = ["like", "pass", "interested", "rejected"];
+const LIKE_PASS = ["like", "pass"];
+const ACCEPT_REJECT = ["accepted", "rejected"];
 module.exports = {
 	ALLOWED_GENDER,
 	JWT_TOKEN,
@@ -11,4 +14,7 @@ module.exports = {
 	NAME_REGEX,
 	EXCLUDED_FIELDS,
 	ALLOWED_UPDATE_FIELDS,
+	ALLOWED_STATUS,
+	LIKE_PASS,
+	ACCEPT_REJECT,
 };
