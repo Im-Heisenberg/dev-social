@@ -22,5 +22,5 @@ const connectionSchema = mongoose.Schema(
 	}
 );
 
-const connectionModel = mongoose.model("connection", connectionSchema);
-module.exports = { connectionModel };
+const requestModel = mongoose.model("connection", connectionSchema);
+module.exports = { requestModel };
