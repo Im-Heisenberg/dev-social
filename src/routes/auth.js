@@ -1,8 +1,6 @@
 const express = require("express");
 const {
 	verifyNewUserCreation,
-	isEmailValid,
-	isPasswordValid,
 	isPasswordCorrect,
 } = require("../utils/validations");
 
@@ -19,7 +17,6 @@ router.post("/sign-up", async (req, res) => {
 
 		const isUserObjectInValid = verifyNewUserCreation(req.body);
 		if (isUserObjectInValid) {
-			console.error(isUserObjectInValid);
 			throw new Error("Validation error");
 		}
 
@@ -43,17 +40,18 @@ router.post("/login", async (req, res) => {
 	const { email, password } = req.body;
 	// verify email & password & user should exist in DB
 	const isUserValid = await userModel.findOne({ email });
-	if (
-		!isUserValid ||
-		!(await isPasswordCorrect(password, isUserValid.password))
-	) {
-		res.json({ message: "wrong creds" });
-	} else {
+	const passwordCheck = await isPasswordCorrect(
+		password,
+		isUserValid.password
+	);
+	if (isUserValid && passwordCheck) {
 		// generate jwt
 		const token = isUserValid.generateJwtToken(email);
 		// add jwt to cookie
 		res.cookie(JWT_TOKEN, token);
-		res.json({ message: "user logged in" });
+		res.json({ message: "user logged in", data: isUserValid });
+	} else {
+		res.status(501).json({ message: "Login failed" });
 	}
 });
 router.post("/logout", async (req, res) => {

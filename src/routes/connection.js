@@ -67,54 +67,87 @@ router.post("/depre/:receiverId", authMiddleware, async (req, res) => {
 });
 
 // handle like and pass state
-router.post("/send/:senderId/:state", authMiddleware, async (req, res) => {
+router.post(
+	"/depre/send/:senderId/:state",
+	authMiddleware,
+	async (req, res) => {
+		try {
+			const { userId, state } = req.params;
+			const { _id: loggedUser } = req.loggedUser;
+
+			// state check --> like or pass only
+			if (!LIKE_PASS.includes(state)) {
+				throw new Error("Invalid status received");
+			}
+
+			const isUserValid = await userModel.findOne({ _id: userId });
+
+			// userid check --> present in DB
+			if (!isUserValid) {
+				throw new Error("Invalid userID received");
+			}
+			const isDuplicateRequest = await connectionModel.findOne({
+				$or: [
+					{
+						sender: loggedUser,
+						receiver: userId,
+						status: { $in: LIKE_PASS },
+					},
+					{
+						sender: userId,
+						receiver: loggedUser,
+						status: { $in: LIKE_PASS },
+					},
+				],
+			});
+			if (isDuplicateRequest) {
+				throw new Error("Request already existing");
+			}
+
+			const newConnection = new connectionModel({
+				sender: loggedUser,
+				receiver: userId,
+				status: state,
+			});
+			const data = await newConnection.save();
+			return res
+				.status(201)
+				.json({ message: "request updated: " + state, data });
+		} catch (error) {
+			res.json({ message: error.message });
+		}
+	}
+);
+
+router.post("/send/:state/:id/", authMiddleware, async (req, res) => {
 	try {
-		const { userId, state } = req.params;
-		const {_id:loggedUser} = req.loggedUser;
-
-		// state check --> like or pass only
-		if (!LIKE_PASS.includes(state)) {
-			throw new Error("Invalid status received");
-		}
-
-		const isUserValid = await userModel.findOne({ _id: userId });
-
-		// userid check --> present in DB
-		if (!isUserValid) {
-			throw new Error("Invalid userID received");
-		}
-		const isDuplicateRequest = await connectionModel.findOne({
+		const { state, id } = req.params;
+		const loggedUser = req.loggedUser;
+		const isStateValid = LIKE_PASS.includes(state.toLowerCase());
+		const isUserIdValid = await userModel.findOne({ _id: id });
+		const isConnectionDuplicate = await connectionModel.findOne({
 			$or: [
-				{
-					sender: loggedUser,
-					receiver: userId,
-					status: { $in: LIKE_PASS },
-				},
-				{
-					sender: userId,
-					receiver: loggedUser,
-					status: { $in: LIKE_PASS },
-				},
+				{ sender: loggedUser._id, receiver: id },
+				{ sender: id, receiver: loggedUser._id },
 			],
 		});
-		if (isDuplicateRequest) {
-			throw new Error("Request already existing");
-		}
-
+		if (!isStateValid || !isUserIdValid)
+			throw new Error("Invalid state or Id received");
+		if (isConnectionDuplicate) throw new Error("Duplicate request");
 		const newConnection = new connectionModel({
-			sender: loggedUser,
-			receiver: userId,
+			sender: loggedUser._id,
+			receiver: id,
 			status: state,
 		});
 		const data = await newConnection.save();
-		return res.status(201).json({ message: "request updated: " + state, data });
+		res.status(201).json({ message: "connection added:" + state, data });
 	} catch (error) {
 		res.json({ message: error.message });
 	}
 });
 
 // handle accept and reject state
-router.post("/review/:userId/:state", async (req, res) => {
+router.post("/depre/review/:userId/:state", async (req, res) => {
 	try {
 		const { userId: senderId, state } = req.params;
 		const { _id: loggedUser } = req.loggedUser;
@@ -129,11 +162,11 @@ router.post("/review/:userId/:state", async (req, res) => {
 		}
 		const isRequestDuplicate = await connectionModel.findOne({
 			$or: [
-				{
-					sender: loggedUser,
-					receiver: receiverId,
-					state: { $in: ACCEPT_REJECT },
-				},
+				// {
+				// 	sender: loggedUser,
+				// 	receiver: receiverId,
+				// 	state: { $in: ACCEPT_REJECT },
+				// },
 				{
 					sender: receiverId,
 					receiver: loggedUser,
@@ -156,5 +189,32 @@ router.post("/review/:userId/:state", async (req, res) => {
 		res.json({ message: error.message });
 	}
 });
+router.patch("/review/:state/:requestId", authMiddleware, async (req, res) => {
+	try {
+		const loggedUser = req.loggedUser;
+		const { state, requestId } = req.params;
+		const isStateValid = ACCEPT_REJECT.includes(state.toLowerCase());
+		const isRequestValid = await connectionModel.findOne({
+			_id: requestId,
+			$and: [{ status: "like" }],
+		});
 
+		if (!isStateValid || !isRequestValid) {
+			throw new Error("Invalid request");
+		}
+
+		if (loggedUser._id.equals(isRequestValid.receiver)) {
+			isRequestValid.status = state;
+			const data = await isRequestValid.save();
+			return res.json({ data });
+		}
+		if (!loggedUser._id.equals(isRequestValid.receiver)) {
+			throw new Error("Sender and receiver cant be same");
+		}
+		throw new Error("Unexpected error");
+	} catch (error) {
+		res.json({ message: error.message });
+	}
+});
+router.get('/')
 module.exports = { router };

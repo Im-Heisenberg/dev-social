@@ -8,6 +8,7 @@ const {
 	JWT_TOKEN,
 	EXCLUDED_FIELDS,
 	ALLOWED_STATUS,
+	MAX_SKILLS,
 } = require("./constants");
 const { userModel } = require("../models/user");
 const { default: mongoose } = require("mongoose");
@@ -28,6 +29,7 @@ const isGenderValid = (gender) => {
 const isSkillValid = (skills) => {
 	return (
 		Array.isArray(skills) &&
+		skills.length <= MAX_SKILLS &&
 		skills.every(
 			(skill) =>
 				typeof skill === "string" &&
@@ -98,7 +100,6 @@ function validateConnectionParams(receiver, state) {
 
 async function isPasswordCorrect(plainPassword, hash) {
 	return await bcrypt.compare(plainPassword, hash);
-	
 }
 
 module.exports = {
