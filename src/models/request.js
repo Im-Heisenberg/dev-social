@@ -1,15 +1,17 @@
 const mongoose = require("mongoose");
 const { ALLOWED_STATUS } = require("../utils/constants");
 
-const connectionSchema = mongoose.Schema(
+const requestSchema = mongoose.Schema(
 	{
 		sender: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
+			ref: "User",
 		},
 		receiver: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
+			ref:"User",
 		},
 		status: {
 			type: String,
@@ -22,5 +24,5 @@ const connectionSchema = mongoose.Schema(
 	}
 );
 
-const requestModel = mongoose.model("connection", connectionSchema);
+const requestModel = mongoose.model("requests", requestSchema);
 module.exports = { requestModel };

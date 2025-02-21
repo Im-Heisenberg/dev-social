@@ -3,7 +3,12 @@ const {
 	authMiddleware,
 	validateConnectionParams,
 } = require("../utils/validations");
-const { LIKE_PASS, ACCEPT_REJECT } = require("../utils/constants");
+const {
+	LIKE_PASS,
+	ACCEPT_REJECT,
+	REF_POPULATE,
+	EXCLUDED_FIELDS,
+} = require("../utils/constants");
 const { requestModel } = require("../models/request");
 const { userModel } = require("../models/user");
 const { default: mongoose } = require("mongoose");
@@ -65,7 +70,6 @@ router.post("/depre/:receiverId", authMiddleware, async (req, res) => {
 		res.status(401).json({ message: error.message });
 	}
 });
-
 // handle like and pass state
 router.post(
 	"/depre/send/:senderId/:state",
@@ -118,7 +122,6 @@ router.post(
 		}
 	}
 );
-
 router.post("/send/:state/:id/", authMiddleware, async (req, res) => {
 	try {
 		const { state, id } = req.params;
@@ -145,7 +148,6 @@ router.post("/send/:state/:id/", authMiddleware, async (req, res) => {
 		res.json({ message: error.message });
 	}
 });
-
 // handle accept and reject state
 router.post("/depre/review/:userId/:state", async (req, res) => {
 	try {
@@ -196,9 +198,11 @@ router.patch("/review/:state/:requestId", authMiddleware, async (req, res) => {
 		const isStateValid = ACCEPT_REJECT.includes(state.toLowerCase());
 		const isRequestValid = await requestModel.findOne({
 			_id: requestId,
-			$and: [{ status: "like" }],
+			// receiver: loggedUser._id,
+			status: "like",
 		});
 
+		console.log(isRequestValid);
 		if (!isStateValid || !isRequestValid) {
 			throw new Error("Invalid request");
 		}
@@ -216,5 +220,49 @@ router.patch("/review/:state/:requestId", authMiddleware, async (req, res) => {
 		res.json({ message: error.message });
 	}
 });
-router.get("/");
+// fetch all received requests
+router.get("/received", authMiddleware, async (req, res) => {
+	try {
+		const loggedUser = req.loggedUser;
+		const requestsReceived = await requestModel
+			.find({
+				receiver: loggedUser._id,
+				status: "like",
+			})
+			.populate("sender", REF_POPULATE);
+		if (requestsReceived.length <= 0) {
+			throw new Error("No request found");
+		} else {
+			res.json({ data: requestsReceived });
+		}
+	} catch (error) {
+		res.json({ message: error.message });
+	}
+});
+router.get("/connections", authMiddleware, async (req, res) => {
+	try {
+		const loggedUser = req.loggedUser;
+		const connections = await requestModel
+			.find({
+				$or: [
+					{ sender: loggedUser._id, status: "accepted" },
+					{ receiver: loggedUser._id, status: "accepted" },
+				],
+			})
+			.select(EXCLUDED_FIELDS)
+			.populate("receiver", REF_POPULATE)
+			.populate("sender", REF_POPULATE);
+		// TODO
+		const data = connections.map((connection) => {
+			if (String(connection.sender) === String(loggedUser._id)) {
+				return connection.receiver;
+			}
+			return connection.sender;
+		});
+
+		res.status(200).json({ data });
+	} catch (error) {
+		res.status(500).json({ message: "Cant get connections" });
+	}
+});
 module.exports = { router };
