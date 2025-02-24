@@ -42,12 +42,10 @@ const isSkillValid = (skills) => {
 };
 function verifyNewUserCreation({
 	firstname,
-	lastname, //
 	email,
 	password,
 	age,
 	gender,
-	skills, //
 
 }) {
 	const error = {};
@@ -55,10 +53,8 @@ function verifyNewUserCreation({
 	!isNameValid(firstname)
 		? (error.firstnameError = "firstname invalid")
 		: null;
-	// !isNameValid(lastname) ? (error.lastnameError = "lastname invalid") : null;
 	!isAgeValid(String(age)) ? (error.ageError = "age invalid") : null;
 	!isGenderValid(gender) ? (error.genderError = "gender invalid") : null;
-	// !isSkillValid(skills) ? (error.skillsError = "skills invalid") : null;
 	!isPasswordValid(password)
 		? (error.passwordError = "password invalid")
 		: null;
