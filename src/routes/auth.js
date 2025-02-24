@@ -2,6 +2,9 @@ const express = require("express");
 const {
 	verifyNewUserCreation,
 	isPasswordCorrect,
+	isSkillValid,
+	isNameValid,
+	isUrlValid,
 } = require("../utils/validations");
 
 const { userModel } = require("../models/user");
@@ -9,8 +12,16 @@ const { JWT_TOKEN } = require("../utils/constants");
 const router = express.Router();
 
 router.post("/sign-up", async (req, res) => {
-	const { firstname, lastname, email, password, age, gender, skills } =
-		req.body;
+	const {
+		firstname,
+		lastname,
+		email,
+		password,
+		age,
+		gender,
+		skills,
+		photoUrl,
+	} = req.body;
 	try {
 		const isEmailExisitng = await userModel.findOne({ email });
 		if (isEmailExisitng) throw new Error("Email already exist");
@@ -20,15 +31,23 @@ router.post("/sign-up", async (req, res) => {
 			throw new Error("Validation error");
 		}
 
-		const newUser = new userModel({
+		let newUser = new userModel({
 			firstname,
-			lastname,
 			email,
 			password,
 			age,
 			gender,
-			skills,
 		});
+		if (skills && isSkillValid(skills)) {
+			newUser.skills = skills;
+		}
+		if (lastname && isNameValid(lastname)) {
+			newUser.lastname = lastname;
+		}
+		if (photoUrl && isUrlValid(photoUrl)) {
+			newUser.photoUrl = photoUrl;
+		}
+		console.log(newUser);
 		newUser.password = await newUser.encryptPassword(password);
 		await newUser.save();
 		res.json({ message: "user created" });

@@ -45,6 +45,11 @@ const userSchema = mongoose.Schema(
 			type: [String],
 			default: [],
 		},
+		photoUrl: {
+			type: String,
+			default:
+				"https://s3.amazonaws.com/37assets/svn/765-default-avatar.png",
+		},
 	},
 	{
 		timestamps: true,

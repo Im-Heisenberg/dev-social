@@ -7,6 +7,7 @@ const {
 	isPasswordCorrect,
 	isPasswordValid,
 	calculateSkipp,
+	isUrlValid,
 } = require("../utils/validations");
 const { userModel } = require("../models/user");
 const {
@@ -28,17 +29,18 @@ router.get("/view", authMiddleware, async (req, res) => {
 router.patch("/edit", authMiddleware, async (req, res) => {
 	try {
 		const loggedUser = req.loggedUser;
-		const { firstname, lastname, age, skills } = req.body;
+		const { firstname, lastname, age, skills,photoUrl } = req.body;
 		if (
 			isNameValid(firstname) &&
 			isNameValid(lastname) &&
 			isAgeValid(String(age)) &&
-			isSkillValid(skills)
+			isSkillValid(skills) && 
+			isUrlValid(photoUrl)
 		) {
 			const updatedUser = await userModel
 				.findOneAndUpdate(
 					{ email: loggedUser.email },
-					{ firstname, lastname, age, skills },
+					{ firstname, lastname, age, skills,photoUrl },
 					{ new: true }
 				)
 				.select(EXCLUDED_FIELDS);

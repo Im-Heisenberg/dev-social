@@ -20,6 +20,7 @@ const isNameValid = (name) => {
 };
 
 const isEmailValid = (email) => validator.isEmail(email);
+const isUrlValid = (url) => validator.isURL(url);
 
 const isPasswordValid = (password) => validator.isStrongPassword(password);
 
@@ -41,25 +42,23 @@ const isSkillValid = (skills) => {
 };
 function verifyNewUserCreation({
 	firstname,
-	lastname,
+	lastname, //
 	email,
 	password,
 	age,
 	gender,
-	skills,
+	skills, //
+
 }) {
 	const error = {};
 	!isEmailValid(email) ? (error.emailError = "email invalid") : null;
 	!isNameValid(firstname)
 		? (error.firstnameError = "firstname invalid")
 		: null;
-	!isNameValid(firstname)
-		? (error.firstnameError = "firstname invalid")
-		: null;
-	!isNameValid(lastname) ? (error.lastnameError = "lastname invalid") : null;
+	// !isNameValid(lastname) ? (error.lastnameError = "lastname invalid") : null;
 	!isAgeValid(String(age)) ? (error.ageError = "age invalid") : null;
 	!isGenderValid(gender) ? (error.genderError = "gender invalid") : null;
-	!isSkillValid(skills) ? (error.skillsError = "skills invalid") : null;
+	// !isSkillValid(skills) ? (error.skillsError = "skills invalid") : null;
 	!isPasswordValid(password)
 		? (error.passwordError = "password invalid")
 		: null;
@@ -118,5 +117,6 @@ module.exports = {
 	isMongoIdValid,
 	isStateValid,
 	isPasswordCorrect,
-	calculateSkipp
+	calculateSkipp,
+	isUrlValid
 };
