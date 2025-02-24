@@ -47,7 +47,6 @@ router.post("/sign-up", async (req, res) => {
 		if (photoUrl && isUrlValid(photoUrl)) {
 			newUser.photoUrl = photoUrl;
 		}
-		console.log(newUser);
 		newUser.password = await newUser.encryptPassword(password);
 		await newUser.save();
 		res.json({ message: "user created" });
@@ -61,7 +60,7 @@ router.post("/login", async (req, res) => {
 	const isUserValid = await userModel.findOne({ email });
 	const passwordCheck = await isPasswordCorrect(
 		password,
-		isUserValid.password
+		isUserValid?.password
 	);
 	if (isUserValid && passwordCheck) {
 		// generate jwt

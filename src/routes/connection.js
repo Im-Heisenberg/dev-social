@@ -202,7 +202,6 @@ router.patch("/review/:state/:requestId", authMiddleware, async (req, res) => {
 			status: "like",
 		});
 
-		console.log(isRequestValid);
 		if (!isStateValid || !isRequestValid) {
 			throw new Error("Invalid request");
 		}
