@@ -8,7 +8,8 @@ const {
 	isPasswordValid,
 } = require("../utils/validations");
 const { userModel } = require("../models/user");
-const { EXCLUDED_FIELDS } = require("../utils/constants");
+const { EXCLUDED_FIELDS, ALLOWED_STATUS } = require("../utils/constants");
+const { requestModel } = require("../models/request");
 const router = express.Router();
 
 router.get("/view", authMiddleware, async (req, res) => {
@@ -65,4 +66,31 @@ router.patch("/update-password", authMiddleware, async (req, res) => {
 	}
 });
 
+router.get("/feed", authMiddleware, async (req, res) => {
+	try {
+		const loggedUser = req.loggedUser;
+		const dontShowUsers = await requestModel.find({
+			$or: [
+				{ sender: loggedUser._id, status: { $in: ALLOWED_STATUS } },
+				{ receiver: loggedUser._id, status: { $in: ALLOWED_STATUS } },
+			],
+		});
+		const notNewOnFeedProfiles = new Set();
+		dontShowUsers.map((profile) => {
+			if (profile.sender.toString() === loggedUser._id.toString()) {
+				notNewOnFeedProfiles.add(profile.receiver);
+			} else {
+				notNewOnFeedProfiles.add(profile.sender);
+			}
+		});
+		const freshUsers = await userModel
+			.find({
+				_id: { $nin: [...notNewOnFeedProfiles, loggedUser._id] },
+			})
+			.select(EXCLUDED_FIELDS);
+		res.status(200).json({ data: freshUsers });
+	} catch (error) {
+		res.json({ message: "Error in getting feed :" + error.message });
+	}
+});
 module.exports = { router };
