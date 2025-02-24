@@ -6,9 +6,14 @@ const {
 	isSkillValid,
 	isPasswordCorrect,
 	isPasswordValid,
+	calculateSkipp,
 } = require("../utils/validations");
 const { userModel } = require("../models/user");
-const { EXCLUDED_FIELDS, ALLOWED_STATUS } = require("../utils/constants");
+const {
+	EXCLUDED_FIELDS,
+	ALLOWED_STATUS,
+	PAGE_LIMIT,
+} = require("../utils/constants");
 const { requestModel } = require("../models/request");
 const router = express.Router();
 
@@ -69,6 +74,8 @@ router.patch("/update-password", authMiddleware, async (req, res) => {
 router.get("/feed", authMiddleware, async (req, res) => {
 	try {
 		const loggedUser = req.loggedUser;
+		const { page = 0 } = req.query;
+
 		const dontShowUsers = await requestModel.find({
 			$or: [
 				{ sender: loggedUser._id, status: { $in: ALLOWED_STATUS } },
@@ -87,6 +94,8 @@ router.get("/feed", authMiddleware, async (req, res) => {
 			.find({
 				_id: { $nin: [...notNewOnFeedProfiles, loggedUser._id] },
 			})
+			.skip(calculateSkipp(page))
+			.limit(PAGE_LIMIT)
 			.select(EXCLUDED_FIELDS);
 		res.status(200).json({ data: freshUsers });
 	} catch (error) {

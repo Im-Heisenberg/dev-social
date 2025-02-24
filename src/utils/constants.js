@@ -9,6 +9,7 @@ const LIKE_PASS = ["like", "pass"];
 const ACCEPT_REJECT = ["accepted", "rejected"];
 const MAX_SKILLS = 5;
 const REF_POPULATE = ["firstname", "lastname", "age", "gender"];
+const PAGE_LIMIT = 2;
 module.exports = {
 	ALLOWED_GENDER,
 	JWT_TOKEN,
@@ -20,5 +21,6 @@ module.exports = {
 	LIKE_PASS,
 	ACCEPT_REJECT,
 	MAX_SKILLS,
-	REF_POPULATE
+	REF_POPULATE,
+	PAGE_LIMIT
 };

@@ -9,6 +9,7 @@ const {
 	EXCLUDED_FIELDS,
 	ALLOWED_STATUS,
 	MAX_SKILLS,
+	PAGE_LIMIT,
 } = require("./constants");
 const { userModel } = require("../models/user");
 const { default: mongoose } = require("mongoose");
@@ -102,6 +103,9 @@ async function isPasswordCorrect(plainPassword, hash) {
 	return await bcrypt.compare(plainPassword, hash);
 }
 
+function calculateSkipp(currPage) {
+	return (currPage*PAGE_LIMIT)-PAGE_LIMIT
+}
 module.exports = {
 	verifyNewUserCreation,
 	isNameValid,
@@ -114,4 +118,5 @@ module.exports = {
 	isMongoIdValid,
 	isStateValid,
 	isPasswordCorrect,
+	calculateSkipp
 };
