@@ -56,10 +56,10 @@ router.post("/login", async (req, res) => {
 });
 router.post("/logout", async (req, res) => {
 	try {
-		res.cookie(JWT_TOKEN, null);
+		res.cookie(JWT_TOKEN, null, { expires: new Date(0) });
 		res.json({ message: "user logged out successfully" });
 	} catch (err) {
-		res.status(505).json({ message: "Error in logging out" });
+		res.json({ message: "Error in logging out" });
 	}
 });
 
